@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(minhook)
 add_library(statFixer SHARED dllmain.cpp
         Signature.h
         signature.cpp
+        dinput8/dinputWrapper.cpp
+        dinput8/dinput8.def
 )
-
 target_link_libraries(statFixer PRIVATE minhook)

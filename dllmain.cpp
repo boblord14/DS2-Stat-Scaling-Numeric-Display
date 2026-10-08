@@ -11,6 +11,10 @@
 #include <string>
 #include <unordered_map>
 #include "Signature.h"
+#include "dinput8/dinputWrapper.h"
+
+// Export DINPUT8
+tDirectInput8Create oDirectInput8Create;
 
 constexpr int DIGIT_LENGTH_MAX = 4;
 uintptr_t baseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
@@ -43,6 +47,19 @@ constexpr uintptr_t SELF_STRUCT_WEAPON_INFUSION = 0xA7;
 constexpr uintptr_t SELF_STRUCT_WEAPON_ID = 0x7C;
 
 constexpr int ELEMENT_COUNT = 7; // phys, magic, lightning, fire, dark, poison, bleed IN THAT ORDER
+
+static void createAndLoadRealDinput8() {
+    /**
+     * Passthrough for the real dinput8.dll
+     * Borrowed from the og modengine.
+     */
+    wchar_t dllPath[MAX_PATH];
+
+    GetSystemDirectoryW(dllPath, MAX_PATH);
+    lstrcatW(dllPath, L"\\dinput8.dll");
+    HMODULE hMod = LoadLibraryW(dllPath);
+    oDirectInput8Create = (tDirectInput8Create)GetProcAddress(hMod, "DirectInput8Create");
+}
 
 int infusionSlotConversion(const uint8_t infusion) {
     /**
@@ -336,6 +353,7 @@ BOOL WINAPI DllMain(HINSTANCE module, DWORD reason, LPVOID)
     if (reason == DLL_PROCESS_ATTACH)
     {
         DisableThreadLibraryCalls(module);
+        createAndLoadRealDinput8();
         CreateThread(0, 0, &MainThread, nullptr, 0, nullptr);
 
     }else if (reason == DLL_PROCESS_DETACH) {
